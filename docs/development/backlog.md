@@ -51,7 +51,7 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Critères :** `python scripts/check_repo.py` sort 0 ; tests unitaires verts ; LICENSE = texte GPL-3.0 officiel.
 - **Clôture :** commit initial sur `main`.
 
-### A-02 — Workflow CI de base — P1 — **écrit, non exécuté**
+### A-02 — Workflow CI de base — P1 — **fait** (runs verts sur `ddbf15b` et `3698756`)
 - **Objectif :** `.github/workflows/ci.yml` lance `check_repo.py` et les tests unitaires sur chaque PR.
 - **Dépendances :** A-01, A-05.
 - **Critères :** permissions `contents: read` ; actions épinglées par SHA ; job vert sur une PR réelle.
@@ -81,8 +81,10 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
   et `PULL_REQUEST_TEMPLATE.md`.
 - **Critères :** champs obligatoires : matériel, VM/réel, version, étapes de reproduction.
 
-### B-01 — Profil archiso minimal LV8 — P0
+### B-01 — Profil archiso minimal LV8 — P0 — **en cours**
 - **Objectif :** `build/iso/` dérivé du profil `releng` d'archiso, sans personnalisation de bureau.
+- **Implémentation :** `build/iso/build.sh` copie `releng` et ne change que l'identité
+  (`profiledef.sh`) ; workflow `.github/workflows/iso.yml`.
 - **Dépendances :** A-02. Nécessite un runner Linux (conteneur `archlinux:latest`).
 - **Critères :** `mkarchiso` produit une ISO en CI ; SHA-256 publié comme artefact ; journaux conservés en cas d'échec.
 - **Tests :** construction CI ; démarrage vérifié séparément (B-02).
@@ -92,6 +94,11 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Dépendances :** B-01.
 - **Critères :** l'ISO démarre en QEMU (UEFI via OVMF et BIOS) et atteint un shell ; détection
   automatique par la console série ; journaux archivés.
+
+### B-04 — Construction reproductible — P1
+- **Objectif :** épingler l'image `archlinux` par digest et une date du dépôt Arch Archive.
+- **Dépendances :** B-01.
+- **Critères :** deux constructions du même commit donnent la même SHA-256, ou les écarts sont documentés.
 
 ### B-03 — Documentation de construction — P1
 - **Dépendances :** B-01.
