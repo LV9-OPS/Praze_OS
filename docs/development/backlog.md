@@ -81,7 +81,7 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
   et `PULL_REQUEST_TEMPLATE.md`.
 - **Critères :** champs obligatoires : matériel, VM/réel, version, étapes de reproduction.
 
-### B-01 — Profil archiso minimal LV8 — P0 — **en cours**
+### B-01 — Profil archiso minimal LV8 — P0 — **fait** (run 39779146944, ISO ~1,6 Go en ~10 min)
 - **Objectif :** `build/iso/` dérivé du profil `releng` d'archiso, sans personnalisation de bureau.
 - **Implémentation :** `build/iso/build.sh` copie `releng` et ne change que l'identité
   (`profiledef.sh`) ; workflow `.github/workflows/iso.yml`.
@@ -90,7 +90,7 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Tests :** construction CI ; démarrage vérifié séparément (B-02).
 - **Risques :** taille et durée du job ; filtrer sur `build/iso/**`.
 
-### B-02 — Test de démarrage de l'ISO en QEMU — P0 — **en cours**
+### B-02 — Test de démarrage de l'ISO en QEMU — P0 — **fait** (run 39780665394 : BIOS et UEFI jusqu'à `login:` en < 1 min)
 - **Dépendances :** B-01.
 - **Implémentation :** `tests/vm/boot_iso.py` (QEMU, BIOS et OVMF) ; job `boot-iso` de `iso.yml` ;
   `build.sh` ajoute `console=ttyS0,115200 console=tty0` aux entrées de démarrage.
