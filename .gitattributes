@@ -1,0 +1,8 @@
+# Les scripts et configs système sont exécutés sous Linux : LF obligatoire.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.svg text eol=lf
+*.iso binary
+*.img binary
+*.qcow2 binary

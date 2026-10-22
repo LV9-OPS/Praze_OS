@@ -1,0 +1,26 @@
+# Rust
+target/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+
+# Artefacts de construction (ne jamais commiter d'ISO ou d'image)
+/out/
+/work/
+*.iso
+*.img
+*.qcow2
+*.sig
+
+# Secrets
+*.key
+*.pem
+.env
+
+# Éditeurs / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
