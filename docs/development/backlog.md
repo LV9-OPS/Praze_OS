@@ -67,7 +67,9 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
   les canaux de support.
 - **Critères :** texte officiel copié depuis sa source, licence vérifiée ; contact de modération réel.
 
-### A-05 — Créer le dépôt GitHub et le protéger — P0 pour la publication
+### A-05 — Créer le dépôt GitHub et le protéger — P0 pour la publication — **en cours**
+- **Fait :** dépôt privé `LV9-OPS/Praze_OS` créé, `main` poussé le 2026-10-22.
+- **Reste :** protection de `main`, signalement privé, Dependabot (action du mainteneur).
 - **Objectif :** dépôt GitHub `lv8-os`, branche `main` protégée (PR + CI obligatoires),
   signalement privé de vulnérabilités activé, Dependabot pour les actions.
 - **Dépendances :** A-03. Action du mainteneur (compte GitHub).
