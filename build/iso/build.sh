@@ -31,6 +31,13 @@ for expected in '^iso_name="lv8-os"' '^iso_label="LV8_' '^iso_publisher="LV8-OS'
         || { echo "build.sh : profiledef.sh non personnalisé ($expected)" >&2; exit 1; }
 done
 
+# Console série pour le test de démarrage automatisé (tests/vm/boot_iso.py).
+# tty0 en dernier : l'écran reste la console principale (/dev/console).
+mapfile -t boot_entries < <(grep -rl 'archisobasedir=%INSTALL_DIR%' \
+    "$profile/syslinux" "$profile/efiboot" "$profile/grub" 2>/dev/null || true)
+[[ ${#boot_entries[@]} -gt 0 ]] || { echo "build.sh : aucune entrée de démarrage trouvée" >&2; exit 1; }
+sed -i 's/archisobasedir=%INSTALL_DIR%/& console=ttyS0,115200 console=tty0/' "${boot_entries[@]}"
+
 mkdir -p "$out"
 mkarchiso -v -w "$work/work" -o "$out" "$profile"
 

@@ -90,8 +90,11 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Tests :** construction CI ; démarrage vérifié séparément (B-02).
 - **Risques :** taille et durée du job ; filtrer sur `build/iso/**`.
 
-### B-02 — Test de démarrage de l'ISO en QEMU — P0
+### B-02 — Test de démarrage de l'ISO en QEMU — P0 — **en cours**
 - **Dépendances :** B-01.
+- **Implémentation :** `tests/vm/boot_iso.py` (QEMU, BIOS et OVMF) ; job `boot-iso` de `iso.yml` ;
+  `build.sh` ajoute `console=ttyS0,115200 console=tty0` aux entrées de démarrage.
+- **Limite :** démarrage en VM seulement ; ne valide ni le matériel de référence ni Secure Boot.
 - **Critères :** l'ISO démarre en QEMU (UEFI via OVMF et BIOS) et atteint un shell ; détection
   automatique par la console série ; journaux archivés.
 
