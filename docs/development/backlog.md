@@ -105,6 +105,12 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Dépendances :** B-01.
 - **Critères :** deux constructions du même commit donnent la même SHA-256, ou les écarts sont documentés.
 
+### B-05 — Compatibilité CPU x86-64 de base — P1 — **en cours**
+- **Objectif :** garantir qu'aucun composant n'exige SSE4/AVX (ADR 0002).
+- **Implémentation :** `boot_iso.py --cpu` ; job `boot-iso` bios/`qemu64` ; matrice `docs/compatibility/matrix.md`.
+- **Critères :** l'ISO démarre jusqu'à `login:` avec `-cpu qemu64` en CI.
+- **Limite :** QEMU `qemu64` n'émule pas les errata ni les vrais CPU anciens ; un test matériel ancien reste à faire.
+
 ### B-03 — Documentation de construction — P1
 - **Dépendances :** B-01.
 - **Critères :** `docs/development/build.md` permet de reconstruire l'ISO sur une machine Arch.

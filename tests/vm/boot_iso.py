@@ -21,14 +21,22 @@ OVMF_CODE = "/usr/share/OVMF/OVMF_CODE_4M.fd"
 OVMF_VARS = "/usr/share/OVMF/OVMF_VARS_4M.fd"
 
 
-def qemu_command(iso, firmware, vars_copy):
+def kvm_available():
+    return os.path.exists("/dev/kvm") and os.access("/dev/kvm", os.R_OK | os.W_OK)
+
+
+def qemu_command(iso, firmware, vars_copy, cpu="host", kvm=None):
+    """cpu : modèle QEMU ; 'qemu64' = x86-64 de base sans SSE4/AVX (ADR 0002)."""
+    kvm = kvm_available() if kvm is None else kvm
     cmd = [
         "qemu-system-x86_64", "-m", "2048", "-smp", "2",
         "-display", "none", "-serial", "stdio", "-no-reboot",
         "-cdrom", str(iso), "-boot", "d",
     ]
-    if os.path.exists("/dev/kvm") and os.access("/dev/kvm", os.R_OK | os.W_OK):
-        cmd += ["-enable-kvm", "-cpu", "host"]
+    if kvm:
+        cmd += ["-enable-kvm"]
+    # 'host' n'existe qu'avec KVM ; sans KVM, 'max' est l'équivalent émulé.
+    cmd += ["-cpu", cpu if kvm or cpu != "host" else "max"]
     if firmware == "uefi":
         cmd += [
             "-machine", "q35",
@@ -68,6 +76,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("iso", type=Path)
     parser.add_argument("--firmware", choices=["bios", "uefi"], required=True)
+    parser.add_argument("--cpu", default="host", help="modèle de CPU QEMU (host, qemu64…)")
     parser.add_argument("--timeout", type=int, default=600)
     parser.add_argument("--log", type=Path, default=Path("boot.log"))
     args = parser.parse_args()
@@ -79,8 +88,8 @@ def main():
         vars_copy = Path(tmp) / "OVMF_VARS.fd"
         if args.firmware == "uefi":
             shutil.copy(OVMF_VARS, vars_copy)
-        ok = watch(qemu_command(args.iso, args.firmware, vars_copy), MARKER, args.timeout, args.log)
-    print(f"démarrage {args.firmware} : {'OK' if ok else 'ÉCHEC'} (journal : {args.log})")
+        ok = watch(qemu_command(args.iso, args.firmware, vars_copy, args.cpu), MARKER, args.timeout, args.log)
+    print(f"démarrage {args.firmware}/{args.cpu} : {'OK' if ok else 'ÉCHEC'} (journal : {args.log})")
     return 0 if ok else 1
 
 

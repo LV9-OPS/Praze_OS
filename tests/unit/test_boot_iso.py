@@ -49,6 +49,24 @@ class CommandTest(unittest.TestCase):
         self.assertFalse(any("pflash" in arg for arg in cmd))
         self.assertIn("lv8.iso", cmd)
 
+    def cpu_of(self, cmd):
+        return cmd[cmd.index("-cpu") + 1]
+
+    def test_host_cpu_with_kvm(self):
+        cmd = boot_iso.qemu_command("lv8.iso", "bios", "", kvm=True)
+        self.assertIn("-enable-kvm", cmd)
+        self.assertEqual(self.cpu_of(cmd), "host")
+
+    def test_host_cpu_without_kvm_falls_back_to_max(self):
+        cmd = boot_iso.qemu_command("lv8.iso", "bios", "", kvm=False)
+        self.assertNotIn("-enable-kvm", cmd)
+        self.assertEqual(self.cpu_of(cmd), "max")
+
+    def test_baseline_cpu_kept(self):
+        for kvm in (True, False):
+            cmd = boot_iso.qemu_command("lv8.iso", "bios", "", cpu="qemu64", kvm=kvm)
+            self.assertEqual(self.cpu_of(cmd), "qemu64")
+
 
 if __name__ == "__main__":
     unittest.main()

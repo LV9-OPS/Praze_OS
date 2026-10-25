@@ -37,6 +37,11 @@ jobs:
       fail-fast: false
       matrix:
         firmware: [bios, uefi]
+        cpu: [host]
+        include:
+          # x86-64 de base sans SSE4/AVX : détecte les instructions illégales (ADR 0002).
+          - firmware: bios
+            cpu: qemu64
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -55,12 +60,12 @@ jobs:
           echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
-      - name: Démarrage ${{ matrix.firmware }}
-        run: python3 tests/vm/boot_iso.py out/*.iso --firmware ${{ matrix.firmware }} --log boot-${{ matrix.firmware }}.log
+      - name: Démarrage ${{ matrix.firmware }} / ${{ matrix.cpu }}
+        run: python3 tests/vm/boot_iso.py out/*.iso --firmware ${{ matrix.firmware }} --cpu ${{ matrix.cpu }} --log boot-${{ matrix.firmware }}-${{ matrix.cpu }}.log
       - name: Journal série
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: boot-${{ matrix.firmware }}-log
-          path: boot-${{ matrix.firmware }}.log
+          name: boot-${{ matrix.firmware }}-${{ matrix.cpu }}-log
+          path: boot-${{ matrix.firmware }}-${{ matrix.cpu }}.log
           retention-days: 7
