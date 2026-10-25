@@ -98,7 +98,7 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Critères :** l'ISO démarre en QEMU (UEFI via OVMF et BIOS) et atteint un shell ; détection
   automatique par la console série ; journaux archivés.
 
-### B-04 — Construction reproductible — P1 — **en cours**
+### B-04 — Construction reproductible — P1 — **fait** (run 40228615262 : identique hors exceptions documentées)
 - **Implémentation :** workflow réutilisable `iso-build.yml` (image `archlinux` par digest,
   Arch Archive au 2026-10-24) ; `iso-repro.yml` construit deux fois et compare les SHA-256.
 - **Objectif :** épingler l'image `archlinux` par digest et une date du dépôt Arch Archive.
