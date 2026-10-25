@@ -104,6 +104,22 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Objectif :** épingler l'image `archlinux` par digest et une date du dépôt Arch Archive.
 - **Dépendances :** B-01.
 - **Critères :** deux constructions du même commit donnent la même SHA-256, ou les écarts sont documentés.
+- **Constat (run 40225601291) :** mtimes des fichiers de l'ISO = heure de construction ;
+  `modalias.gz` compressé sans `-n` ; cache `ldconfig/aux-cache` ; identifiants machine
+  aléatoires (`/etc/nvme/hostid`, `hostnqn`, `/etc/iscsi/initiatorname.iscsi`) ; `/etc/brlapi.key`.
+- **Correction :** `build/iso/wrappers/` (xorriso fixe les dates, gzip `-n`, mksquashfs retire
+  le cache). Écarts restants listés dans `build/iso/repro-exceptions.txt` ; tout autre écart
+  fait échouer `iso-repro`.
+- **Limite :** si des fichiers d'exception diffèrent, un écart caché dans les structures
+  ISO/El Torito ne peut pas être distingué.
+
+### C-01 — Identifiants machine uniques à l'installation — P1
+- **Contexte :** l'ISO contient un `hostnqn`/`hostid` NVMe et un nom d'initiateur iSCSI générés
+  à la construction : toutes les machines installées depuis une même ISO les partageraient.
+- **Objectif :** l'installateur supprime puis régénère ces identifiants (et `machine-id`) sur
+  le système cible.
+- **Critères :** deux installations depuis la même ISO ont des identifiants différents (test VM).
+- **Dépendances :** Jalon C (installateur).
 
 ### B-03 — Documentation de construction — P1
 - **Dépendances :** B-01.

@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Placé devant /usr/bin dans le PATH de mkarchiso par build.sh (ticket B-04).
+# -n : ne pas inscrire nom ni date d'origine dans l'archive (modalias.gz variait).
+touch "$LV8_WRAP_LOG/gzip"
+exec /usr/bin/gzip -n "$@"
