@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Placé devant /usr/bin dans le PATH de mkarchiso par build.sh (ticket B-04).
+# xorriso reprend la date réelle des fichiers de l'ISO : on la fixe avant.
+set -euo pipefail
+touch "$LV8_WRAP_LOG/xorriso"
+if [[ -n ${SOURCE_DATE_EPOCH:-} ]]; then
+    [[ -d $LV8_ISOFS_DIR ]] || { echo "wrapper xorriso : $LV8_ISOFS_DIR absent (archiso a changé ?)" >&2; exit 1; }
+    find "$LV8_ISOFS_DIR" -exec touch -h -d "@$SOURCE_DATE_EPOCH" {} +
+fi
+exec /usr/bin/xorriso "$@"

@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Placé devant /usr/bin dans le PATH de mkarchiso par build.sh (ticket B-04).
+# Retire les caches non déterministes et régénérables avant la création de airootfs.sfs.
+set -euo pipefail
+touch "$LV8_WRAP_LOG/mksquashfs"
+[[ -d $LV8_AIROOTFS_DIR/etc ]] || { echo "wrapper mksquashfs : $LV8_AIROOTFS_DIR absent (archiso a changé ?)" >&2; exit 1; }
+rm -f "$LV8_AIROOTFS_DIR/var/cache/ldconfig/aux-cache"
+exec /usr/bin/mksquashfs "$@"

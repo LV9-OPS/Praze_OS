@@ -9,6 +9,9 @@ on:
     paths:
       - ".github/workflows/iso-repro.yml"
       - ".github/workflows/iso-build.yml"
+      - "build/iso/manifest.sh"
+      - "build/iso/repro-exceptions.txt"
+      - "build/iso/wrappers/**"
 
 permissions:
   contents: read
@@ -18,25 +21,56 @@ jobs:
     uses: ./.github/workflows/iso-build.yml
     with:
       artifact-name: lv8-os-iso-repro-a
+      manifest: true
   build-b:
     uses: ./.github/workflows/iso-build.yml
     with:
       artifact-name: lv8-os-iso-repro-b
+      manifest: true
 
   compare:
     needs: [build-a, build-b]
     runs-on: ubuntu-24.04
     steps:
-      - name: Comparaison des SHA-256
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: lv8-os-iso-repro-*-manifest
+      - name: Comparaison
         env:
           A: ${{ needs.build-a.outputs.sha256 }}
           B: ${{ needs.build-b.outputs.sha256 }}
         run: |
-          echo "A: $A"
-          echo "B: $B"
+          # Les annotations restent lisibles sans connexion, contrairement aux journaux.
+          echo "::notice title=SHA-256 A::$A"
+          echo "::notice title=SHA-256 B::$B"
           if [ -n "$A" ] && [ "$A" = "$B" ]; then
             echo "Construction reproductible au bit près."
-          else
-            echo "::error::Les deux constructions diffèrent ; comparer les artefacts avec diffoscope."
+            exit 0
+          fi
+          diff lv8-os-iso-repro-a-manifest/manifest.txt lv8-os-iso-repro-b-manifest/manifest.txt > all.diff || true
+          if ! grep -q '^[<>]' all.diff; then
+            echo "::error title=Écart hors manifeste::Fichiers identiques mais ISO différentes : structures ISO 9660 / El Torito (efiboot.img…)."
             exit 1
           fi
+          # Retire les écarts listés dans build/iso/repro-exceptions.txt (section + chemin, dernier champ).
+          awk 'NR == FNR { if ($0 !~ /^#/ && NF == 2) ok[$1 " " $2] = 1; next }
+               /^[<>]/ && !(($2 " " $NF) in ok)' build/iso/repro-exceptions.txt all.diff > manifest.diff
+          if [ ! -s manifest.diff ]; then
+            echo "::warning title=Reproductible hors exceptions::Seuls les écarts de build/iso/repro-exceptions.txt subsistent."
+            exit 0
+          fi
+          annotate() {
+            # %, CR et LF doivent être encodés dans un message d'annotation.
+            lines=$(cat)
+            body=$(printf '%s\n' "$lines" | head -n 60 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=$1 ($(printf '%s\n' "$lines" | grep -c .) lignes)::$body"
+          }
+          # Lignes d'empreinte (« section sha256  chemin ») : le contenu diffère.
+          grep -E '^[<>] (iso|root) [0-9a-f]{64}  ' manifest.diff | annotate "Contenu différent" || true
+          # Lignes de métadonnées du système live (droits, propriétaire, mtime, taille).
+          grep -E '^[<>] root [a-z] ' manifest.diff | annotate "Métadonnées airootfs" || true
+          grep -E '^[<>] iso [a-z] ' manifest.diff | annotate "Métadonnées ISO" || true
+          exit 1

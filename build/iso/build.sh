@@ -12,7 +12,11 @@ releng=/usr/share/archiso/configs/releng
 [[ $EUID -eq 0 ]] || { echo "build.sh : root requis (mkarchiso)" >&2; exit 1; }
 [[ -d $releng ]] || { echo "build.sh : $releng absent, installer archiso" >&2; exit 1; }
 
-work=$(mktemp -d)
+# Chemin fixe, pas mktemp : mkarchiso écrit le chemin de modules.alias dans
+# boot/syslinux/hdt/modalias.gz (find -print), ce qui casserait la reproductibilité.
+work=/var/tmp/lv8-iso-build
+[[ ! -e $work ]] || { echo "build.sh : $work existe (construction interrompue ?), le supprimer" >&2; exit 1; }
+mkdir -p "$work"
 trap 'rm -rf "$work"' EXIT
 profile=$work/profile
 cp -r "$releng" "$profile"
@@ -38,8 +42,13 @@ mapfile -t boot_entries < <(grep -rl 'archisobasedir=%INSTALL_DIR%' \
 [[ ${#boot_entries[@]} -gt 0 ]] || { echo "build.sh : aucune entrée de démarrage trouvée" >&2; exit 1; }
 sed -i 's/archisobasedir=%INSTALL_DIR%/& console=ttyS0,115200 console=tty0/' "${boot_entries[@]}"
 
-mkdir -p "$out"
-mkarchiso -v -w "$work/work" -o "$out" "$profile"
+# Reproductibilité (B-04) : outils enveloppés, voir build/iso/wrappers/.
+export LV8_WRAP_LOG=$work/wrap-log LV8_ISOFS_DIR=$work/work/iso LV8_AIROOTFS_DIR=$work/work/x86_64/airootfs
+mkdir -p "$LV8_WRAP_LOG" "$out"
+PATH="$here/wrappers:$PATH" mkarchiso -v -w "$work/work" -o "$out" "$profile"
+for tool in xorriso mksquashfs; do
+    [[ -e $LV8_WRAP_LOG/$tool ]] || { echo "build.sh : wrapper $tool non appelé, reproductibilité non garantie" >&2; exit 1; }
+done
 
 cd "$out"
 pacman -Q archiso > build-info.txt

@@ -1,0 +1,16 @@
+# Écarts connus et acceptés entre deux constructions du même commit (ticket B-04).
+# Format : section chemin   (section = iso | root, chemin tel que dans manifest.sh)
+# Tout écart absent de cette liste fait échouer iso-repro.
+
+# Identifiants machine aléatoires générés à l'installation des paquets (nvme-cli, open-iscsi).
+# Ils ne doivent pas être partagés entre machines : à régénérer à l'installation (ticket C-01).
+root ./etc/nvme/hostid
+root ./etc/nvme/hostnqn
+root ./etc/iscsi/initiatorname.iscsi
+
+# Clé BrlAPI aléatoire (brltty) ; conservée pour l'accessibilité braille du système live.
+root ./etc/brlapi.key
+
+# Conséquences des lignes ci-dessus : l'image squashfs et son empreinte.
+iso ./arch/x86_64/airootfs.sfs
+iso ./arch/x86_64/airootfs.sha512
