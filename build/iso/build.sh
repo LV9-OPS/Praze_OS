@@ -44,5 +44,6 @@ mkarchiso -v -w "$work/work" -o "$out" "$profile"
 cd "$out"
 pacman -Q archiso > build-info.txt
 echo "SOURCE_DATE_EPOCH=${SOURCE_DATE_EPOCH:-non défini}" >> build-info.txt
+grep '^Server' /etc/pacman.d/mirrorlist >> build-info.txt || true
 sha256sum -- *.iso > SHA256SUMS
 cat SHA256SUMS

@@ -1,0 +1,69 @@
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Construction de l'ISO, appelée par iso.yml et iso-repro.yml.
+# Entrées figées : image archlinux par digest + instantané Arch Archive daté.
+# Pour mettre à jour : changer les deux ensemble, puis relancer iso-repro.yml.
+name: iso-build
+
+on:
+  workflow_call:
+    inputs:
+      artifact-name:
+        type: string
+        required: true
+    outputs:
+      sha256:
+        description: Contenu de SHA256SUMS
+        value: ${{ jobs.build.outputs.sha256 }}
+
+permissions:
+  contents: read
+
+env:
+  ARCH_ARCHIVE_DATE: "2026/10/24"
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 60
+    outputs:
+      sha256: ${{ steps.build.outputs.sha256 }}
+    container:
+      # archlinux:latest publié le 2026-10-21
+      image: archlinux@sha256:52dfbd5afb23a220d5ee92dafcb4c788d96c026ed04179890c23adef4c897fa0
+      options: --privileged
+    steps:
+      - name: Dépendances depuis l'instantané Arch Archive
+        run: |
+          echo "Server = https://archive.archlinux.org/repos/${ARCH_ARCHIVE_DATE}/\$repo/os/\$arch" > /etc/pacman.d/mirrorlist
+          pacman -Syyuu --noconfirm --needed archiso git
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Construction de l'ISO
+        id: build
+        # bash = -eo pipefail : un échec de build.sh n'est pas masqué par tee.
+        shell: bash
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
+          mkdir -p out
+          bash build/iso/build.sh out 2>&1 | tee out/build.log
+          echo "sha256=$(cat out/SHA256SUMS)" >> "$GITHUB_OUTPUT"
+      - name: Artefacts
+        if: success()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: |
+            out/*.iso
+            out/SHA256SUMS
+            out/build-info.txt
+          retention-days: 3
+          if-no-files-found: error
+      - name: Journaux d'échec
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ inputs.artifact-name }}-logs
+          path: out/build.log
+          retention-days: 7

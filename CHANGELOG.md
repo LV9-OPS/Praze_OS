@@ -12,3 +12,4 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - Workflow CI `ci.yml` exécutant ces contrôles.
 - `build/iso/build.sh` et workflow `iso.yml` : ISO live minimale dérivée de `releng`, avec SHA256SUMS.
 - `tests/vm/boot_iso.py` et job `boot-iso` : démarrage de l'ISO en QEMU (BIOS et UEFI) jusqu'à l'invite série.
+- Construction ISO épinglée (image `archlinux` par digest, instantané Arch Archive) et workflow `iso-repro.yml`.
