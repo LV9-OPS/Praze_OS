@@ -9,7 +9,7 @@ Chaque résultat indique le lieu du test : CI (VM QEMU), matériel de référenc
 |---|---|---|---|---|---|
 | QEMU, CPU hôte (KVM), VGA standard | BIOS | CI | démarre jusqu'à `login:` | 2026-10-22 | run 39780665394 |
 | QEMU, CPU hôte (KVM), VGA standard | UEFI (OVMF) | CI | démarre jusqu'à `login:` | 2026-10-22 | run 39780665394 |
-| QEMU, CPU `qemu64` (x86-64 v1, sans AVX) | BIOS | CI | en attente | — | ticket B-05 |
+| QEMU, CPU `qemu64` (x86-64 v1, sans SSE4/AVX) | BIOS | CI | démarre jusqu'à `login:` | 2026-10-25 | run 40223679717 |
 
 ## Non testé
 
