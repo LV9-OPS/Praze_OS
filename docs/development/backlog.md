@@ -107,8 +107,9 @@ possible sur ce poste en l'état. Ils doivent tourner en CI (runner Linux, conte
 - **Constat (run 40225601291) :** mtimes des fichiers de l'ISO = heure de construction ;
   `modalias.gz` compressé sans `-n` ; cache `ldconfig/aux-cache` ; identifiants machine
   aléatoires (`/etc/nvme/hostid`, `hostnqn`, `/etc/iscsi/initiatorname.iscsi`) ; `/etc/brlapi.key`.
-- **Correction :** `build/iso/wrappers/` (xorriso fixe les dates, gzip `-n`, mksquashfs retire
-  le cache). Écarts restants listés dans `build/iso/repro-exceptions.txt` ; tout autre écart
+- **Correction :** `build/iso/wrappers/` (xorriso fixe les dates, mksquashfs retire le cache) ;
+  répertoire de travail à chemin fixe, car mkarchiso écrit le chemin de `modules.alias` dans
+  `modalias.gz` (`find -print`, bug amont à signaler à archiso). Écarts restants listés dans `build/iso/repro-exceptions.txt` ; tout autre écart
   fait échouer `iso-repro`.
 - **Limite :** si des fichiers d'exception diffèrent, un écart caché dans les structures
   ISO/El Torito ne peut pas être distingué.

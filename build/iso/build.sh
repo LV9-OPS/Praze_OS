@@ -12,7 +12,11 @@ releng=/usr/share/archiso/configs/releng
 [[ $EUID -eq 0 ]] || { echo "build.sh : root requis (mkarchiso)" >&2; exit 1; }
 [[ -d $releng ]] || { echo "build.sh : $releng absent, installer archiso" >&2; exit 1; }
 
-work=$(mktemp -d)
+# Chemin fixe, pas mktemp : mkarchiso écrit le chemin de modules.alias dans
+# boot/syslinux/hdt/modalias.gz (find -print), ce qui casserait la reproductibilité.
+work=/var/tmp/lv8-iso-build
+[[ ! -e $work ]] || { echo "build.sh : $work existe (construction interrompue ?), le supprimer" >&2; exit 1; }
+mkdir -p "$work"
 trap 'rm -rf "$work"' EXIT
 profile=$work/profile
 cp -r "$releng" "$profile"
