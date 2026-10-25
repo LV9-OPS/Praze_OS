@@ -23,10 +23,9 @@ manifest() {
     (cd "$1" && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum)
 }
 
+# Préfixe de section sur chaque ligne pour pouvoir filtrer un diff.
 {
-    echo "# iso"
-    manifest "$tmp/iso"
-    echo "# airootfs"
-    manifest "$tmp/root"
+    manifest "$tmp/iso" | sed 's/^/iso /'
+    manifest "$tmp/root" | sed 's/^/root /'
 } > "$out"
 wc -l "$out"

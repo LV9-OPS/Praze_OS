@@ -46,8 +46,15 @@ jobs:
             exit 0
           fi
           diff lv8-os-iso-repro-a-manifest/manifest.txt lv8-os-iso-repro-b-manifest/manifest.txt > manifest.diff || true
-          echo "Lignes différentes : $(grep -c '^[<>]' manifest.diff)"
-          # %, CR et LF doivent être encodés dans un message d'annotation.
-          body=$(grep '^[<>]' manifest.diff | head -n 80 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
-          echo "::error title=Écarts de manifeste (80 premières lignes)::$body"
+          annotate() {
+            # %, CR et LF doivent être encodés dans un message d'annotation.
+            lines=$(cat)
+            body=$(printf '%s\n' "$lines" | head -n 60 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+            echo "::error title=$1 ($(printf '%s\n' "$lines" | grep -c .) lignes)::$body"
+          }
+          # Lignes d'empreinte (« section sha256  chemin ») : le contenu diffère.
+          grep -E '^[<>] (iso|root) [0-9a-f]{64}  ' manifest.diff | annotate "Contenu différent" || true
+          # Lignes de métadonnées du système live (droits, propriétaire, mtime, taille).
+          grep -E '^[<>] root [a-z] ' manifest.diff | annotate "Métadonnées airootfs" || true
+          grep -E '^[<>] iso [a-z] ' manifest.diff | annotate "Métadonnées ISO" || true
           exit 1
