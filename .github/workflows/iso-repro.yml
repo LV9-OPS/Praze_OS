@@ -9,6 +9,7 @@ on:
     paths:
       - ".github/workflows/iso-repro.yml"
       - ".github/workflows/iso-build.yml"
+      - "build/iso/manifest.sh"
 
 permissions:
   contents: read
@@ -18,25 +19,35 @@ jobs:
     uses: ./.github/workflows/iso-build.yml
     with:
       artifact-name: lv8-os-iso-repro-a
+      manifest: true
   build-b:
     uses: ./.github/workflows/iso-build.yml
     with:
       artifact-name: lv8-os-iso-repro-b
+      manifest: true
 
   compare:
     needs: [build-a, build-b]
     runs-on: ubuntu-24.04
     steps:
-      - name: Comparaison des SHA-256
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          pattern: lv8-os-iso-repro-*-manifest
+      - name: Comparaison
         env:
           A: ${{ needs.build-a.outputs.sha256 }}
           B: ${{ needs.build-b.outputs.sha256 }}
         run: |
-          echo "A: $A"
-          echo "B: $B"
+          # Les annotations restent lisibles sans connexion, contrairement aux journaux.
+          echo "::notice title=SHA-256 A::$A"
+          echo "::notice title=SHA-256 B::$B"
           if [ -n "$A" ] && [ "$A" = "$B" ]; then
             echo "Construction reproductible au bit près."
-          else
-            echo "::error::Les deux constructions diffèrent ; comparer les artefacts avec diffoscope."
-            exit 1
+            exit 0
           fi
+          diff lv8-os-iso-repro-a-manifest/manifest.txt lv8-os-iso-repro-b-manifest/manifest.txt > manifest.diff || true
+          echo "Lignes différentes : $(grep -c '^[<>]' manifest.diff)"
+          # %, CR et LF doivent être encodés dans un message d'annotation.
+          body=$(grep '^[<>]' manifest.diff | head -n 80 | sed 's/%/%25/g' | sed ':a;N;$!ba;s/\n/%0A/g')
+          echo "::error title=Écarts de manifeste (80 premières lignes)::$body"
+          exit 1

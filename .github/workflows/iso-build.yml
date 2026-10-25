@@ -10,6 +10,10 @@ on:
       artifact-name:
         type: string
         required: true
+      manifest:
+        description: Publier aussi le manifeste de fichiers (build/iso/manifest.sh)
+        type: boolean
+        default: false
     outputs:
       sha256:
         description: Contenu de SHA256SUMS
@@ -60,6 +64,16 @@ jobs:
             out/build-info.txt
           retention-days: 3
           if-no-files-found: error
+      - name: Manifeste de fichiers
+        if: inputs.manifest
+        run: bash build/iso/manifest.sh out/*.iso manifest.txt
+      - name: Artefact manifeste
+        if: inputs.manifest
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: ${{ inputs.artifact-name }}-manifest
+          path: manifest.txt
+          retention-days: 7
       - name: Journaux d'échec
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
